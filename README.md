@@ -1,215 +1,198 @@
-# `cyber-students`
+# cyber-students-secure-api
 
-This repository provides some sample code for the Shared Project for
-Modern Cryptography and Security Management & Compliance.  The project
-requires git, Python 3, and MongoDB.  The following sections briefly
-explain how to setup the project on your local machine.
+This repository provides a secure REST API implementation for the Shared Project for Modern Cryptography and Security Management & Compliance.
 
-## Get the Sample Code
+This project builds upon the original sample code by improving security through password hashing, token-based authentication, and better data handling practices.
 
-Create a [GitHub](https://github.com) account.  Download and install
-[git](https://git-scm.com).  We will use `git` to manage our source
-code.
+---
 
-Verify that `git` is installed correctly:
+##  Remarks
+
+This project is based on the original coursework provided by my lecturer for the Modern Cryptography and Security Management & Compliance module.
+
+The base structure and initial implementation were provided as part of the academic project.
+Enhancements, security improvements, and additional functionality were implemented by me.
+
+---
+
+##  Features
+
+* User Registration
+* User Login (Token-based authentication)
+* Logout functionality
+* User Profile retrieval
+* Password hashing (secure storage)
+* MongoDB database integration
+
+---
+
+##  Requirements
+
+* Python 3
+* MongoDB
+* Git
+* curl
+
+---
+
+##  Get the Code
 
 ```sh
-git --version
+git clone https://github.com/YOUR_GITHUB_USERNAME/cyber-students-secure-api.git
+cd cyber-students-secure-api
 ```
 
-[Fork this
-repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-and clone your forked repository to your local machine:
+---
 
-```sh
-git clone https://github.com/YOUR_GITHUB_USERNAME/cyber-students.git
-```
+##  Setup the Project
 
-## Setup the Project
-
-Create a Python 3 virtual environment:
+Create a virtual environment:
 
 ```sh
 python -m venv project-venv
-
 ```
 
-Activate the virtual environment:
+Activate it:
 
-```bat
-:: ... on Windows:
+```sh
+# macOS/Linux
+source project-venv/bin/activate
+
+# Windows
 .\project-venv\Scripts\activate
 ```
 
-```sh
-# ... on macOS/*nix:
-source project-venv/bin/activate
-```
-
-Install the required packages:
+Install dependencies:
 
 ```sh
-cd cyber-students
 pip install -r requirements.txt
 ```
 
-Download, install and start [MongoDB Community
-Edition](https://www.mongodb.com/docs/manual/installation).  We will
-use MongoDB as our database.
+---
 
-Download and install [MongoDB
-Shell](https://www.mongodb.com/try/download/shell).  Open a MongoDB
-shell:
+##  Database Setup
+
+Start MongoDB and open shell:
 
 ```sh
 mongosh
 ```
 
-Create a database with a collection named `users`:
+Create database and collection:
 
-```
+```js
 use cyberStudents;
 db.createCollection('users');
 ```
 
-This database will store our data.  The tests use an in-memory mock
-database, so they do not require a running MongoDB server.
+---
 
-Download and install [curl](https://curl.se).  `curl` is also shipped
-by Microsoft as part of Windows 10 and 11.  `curl` is a command-line
-tool for interacting with web servers (and other protocols).
-
-Verify that `curl` is installed correctly:
-
-```sh
-curl --version
-```
-
-## Start the Project
-
-The server contains functionality for:
-
-* registering new users (`api/handlers/registration.py`)
-* logging in (`api/handlers/login.py`)
-* logging out (`api/handlers/logout.py`)
-* displaying profile (`api/handlers/user.py`)
-
-To start the server:
+##  Run the Server
 
 ```sh
 python run_server.py
 ```
 
-The server is available on port 4000 at
-http://localhost:4000/students/api.  However, it is not possible to
-use all of the functionality offered by the server directly using a
-browser.  Instead we will use `curl` to interact with the server.
+Server runs at:
 
-### Registration
+```
+http://localhost:4000/students/api
+```
 
-To register a new user:
+---
+
+##  API Usage
+
+### Register
 
 ```sh
-curl -X POST http://localhost:4000/students/api/registration -d "{\"email\": \"foo@bar.com\", \"password\": \"pass\", \"displayName\": \"Foo Bar\"}"
+curl -X POST http://localhost:4000/students/api/registration \
+-d "{\"email\": \"test@example.com\", \"password\": \"pass123\", \"displayName\": \"Test User\"}"
 ```
 
-If the registration is successful, it will confirm the email address
-and the display name of the newly registered user:
+---
 
-```
-{"email": "foo@bar.com", "displayName": "Foo Bar"}
-```
-
-If the registration is unsuccessful, for example, if you try to
-register the same user twice, it will return an error message:
-
-```
-{"message": "A user with the given email address already exists!"}
-```
-
-### Logging In
-
-To login:
+### Login
 
 ```sh
-curl -X POST http://localhost:4000/students/api/login -d "{\"email\": \"foo@bar.com\", \"password\": \"pass\"}"
+curl -X POST http://localhost:4000/students/api/login \
+-d "{\"email\": \"test@example.com\", \"password\": \"pass123\"}"
 ```
 
-If the login is successful, it will return a token and expiration
-timestamp:
+Response:
 
-```
-{"token": "d4a5d8b20fe143b7b92e4fba92d409be", "expiresIn": 1648559677.0}
-```
-
-A token expires and is intended to be short-lived.  A token expires
-two hours after login, after a logout, or if there is another login
-from the same user, generating a new token.
-
-If the login is unsuccessful, for example, if you provide an incorrect
-password, it will return an error message:
-
-```
-{"message": "The email address and password are invalid!"}
+```json
+{
+  "token": "your_token_here",
+  "expiresIn": 1234567890
+}
 ```
 
-### Displaying a Profile
+---
 
-To display a user's profile you need a token that has not expired.
-Then you can use:
+### Get Profile
 
 ```sh
-curl -H "X-Token: d4a5d8b20fe143b7b92e4fba92d409be" http://localhost:4000/students/api/user
+curl -H "X-Token: your_token_here" \
+http://localhost:4000/students/api/user
 ```
 
-Note that this API call does not require the `-X POST` flag.
+---
 
-If successful, it will return the email address and the display name
-for the user:
-
-```
-{"email": "foo@bar.com", "displayName": "Foo Bar"}
-```
-
-### Logging Out
-
-To logout, you also need a token that has not expired.  Then you can
-use:
-
+### Logout
 
 ```sh
-curl -X POST -H "X-Token: d4a5d8b20fe143b7b92e4fba92d409be" http://localhost:4000/students/api/logout
+curl -X POST -H "X-Token: your_token_here" \
+http://localhost:4000/students/api/logout
 ```
 
-## Test the Project
+---
 
-You can run the automated tests using:
+##  Run Tests
 
 ```sh
 python run_test.py
 ```
 
-This command runs a number of automated tests in the `test` directory.
-The tests use an in-memory mock database and perform tests such as registering new users
-(`test/registration.py`), logging in (`test/login.py`), and logging
-out (`test/logout.py`).
+---
 
-The project also includes a program called `run_hacker.py`.  You can
-run it using:
+##  Security Improvements
+
+The original implementation stored passwords in plaintext.
+This version improves security by:
+
+* Hashing passwords before storing them
+* Preventing duplicate user registration
+* Using token-based authentication with expiration
+* Reducing risk of credential exposure
+
+---
+
+##  Hacker Script
 
 ```sh
 python run_hacker.py list
 ```
 
-It displays all information stored in the MongoDB database.  It
-produces output similar to the following:
+This script demonstrates what an attacker could see if the database is compromised.
 
-```
-There are 1 registered users:
-{'_id': ObjectId('6242d9c34536b3a16b49aa6b'), 'email': 'foo@bar.com', 'password': 'pass', 'displayName': 'Foo Bar'}
-```
+ In this improved version, passwords are no longer stored in plaintext, making attacks significantly less effective.
 
-As you can see, all of the information is stored in the clear; there
-is no encryption or password hashing.  If a hacker was to compromise
-the database, they could easily run a similar program to retrieve all
-of the users personal information and passwords.
+---
+
+##  Notes
+
+* Tokens expire after a set time or logout
+* MongoDB must be running locally
+* Tests use an in-memory database (no MongoDB required)
+
+---
+
+##  Future Improvements
+
+* Environment variables for secrets
+* Docker support
+* HTTPS deployment
+* Rate limiting and API protection
+
+---
