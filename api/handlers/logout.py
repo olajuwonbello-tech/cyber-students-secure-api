@@ -2,6 +2,7 @@ from tornado.web import authenticated
 
 from .auth import AuthHandler
 
+
 class LogoutHandler(AuthHandler):
 
     @authenticated
@@ -10,7 +11,8 @@ class LogoutHandler(AuthHandler):
             'email': self.current_user['email'],
         }, {
             '$set': {
-                'token': None
+                'tokenHash': None,
+                'expiresIn': None
             }
         })
 

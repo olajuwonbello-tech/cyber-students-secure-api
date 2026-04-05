@@ -1,12 +1,13 @@
 from json import dumps
-from tornado.escape import json_decode
 from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 
 from api.handlers.logout import LogoutHandler
+from api.security_utils import hash_password, hash_token
 
 from .base import BaseTest
+
 
 class LogoutHandlerTest(BaseTest):
 
@@ -16,9 +17,12 @@ class LogoutHandlerTest(BaseTest):
         super().setUpClass()
 
     async def register(self):
+        password_data = hash_password(self.password)
         await self.get_app().db.users.insert_one({
             'email': self.email,
-            'password': self.password,
+            'passwordHash': password_data['passwordHash'],
+            'passwordSalt': password_data['passwordSalt'],
+            'passwordIterations': password_data['passwordIterations'],
             'displayName': 'testDisplayName'
         })
 
@@ -26,7 +30,10 @@ class LogoutHandlerTest(BaseTest):
         await self.get_app().db.users.update_one({
             'email': self.email
         }, {
-            '$set': { 'token': self.token, 'expiresIn': 2147483647 }
+            '$set': {
+                'tokenHash': hash_token(self.token),
+                'expiresIn': 2147483647
+            }
         })
 
     def setUp(self):
@@ -56,8 +63,8 @@ class LogoutHandlerTest(BaseTest):
         headers = HTTPHeaders({'X-Token': 'wrongToken'})
         body = {}
 
-        response = self.fetch('/logout', method='POST', body=dumps(body))
-        self.assertEqual(400, response.code)
+        response = self.fetch('/logout', headers=headers, method='POST', body=dumps(body))
+        self.assertEqual(403, response.code)
 
     def test_logout_twice(self):
         headers = HTTPHeaders({'X-Token': self.token})

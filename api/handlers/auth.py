@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 
 from .base import BaseHandler
+from api.security_utils import hash_token
+
 
 class AuthHandler(BaseHandler):
 
@@ -13,14 +15,16 @@ class AuthHandler(BaseHandler):
         try:
             token = self.request.headers.get('X-Token')
             if not token:
-              raise Exception()
+                raise Exception()
         except Exception:
             self.current_user = None
             self.send_error(400, message='You must provide a token!')
             return
 
+        token_hash = hash_token(token)
+
         user = await self.db.users.find_one({
-            'token': token
+            'tokenHash': token_hash
         }, {
             'email': 1,
             'displayName': 1,

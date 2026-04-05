@@ -1,12 +1,13 @@
-from json import dumps
 from tornado.escape import json_decode
 from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 
 from api.handlers.user import UserHandler
+from api.security_utils import hash_password, hash_token
 
 from .base import BaseTest
+
 
 class UserHandlerTest(BaseTest):
 
@@ -16,9 +17,12 @@ class UserHandlerTest(BaseTest):
         super().setUpClass()
 
     async def register(self):
+        password_data = hash_password(self.password)
         await self.get_app().db.users.insert_one({
             'email': self.email,
-            'password': self.password,
+            'passwordHash': password_data['passwordHash'],
+            'passwordSalt': password_data['passwordSalt'],
+            'passwordIterations': password_data['passwordIterations'],
             'displayName': self.display_name
         })
 
@@ -26,7 +30,10 @@ class UserHandlerTest(BaseTest):
         await self.get_app().db.users.update_one({
             'email': self.email
         }, {
-            '$set': { 'token': self.token, 'expiresIn': 2147483647 }
+            '$set': {
+                'tokenHash': hash_token(self.token),
+                'expiresIn': 2147483647
+            }
         })
 
     def setUp(self):
@@ -57,5 +64,5 @@ class UserHandlerTest(BaseTest):
     def test_user_wrong_token(self):
         headers = HTTPHeaders({'X-Token': 'wrongToken'})
 
-        response = self.fetch('/user')
-        self.assertEqual(400, response.code)
+        response = self.fetch('/user', headers=headers)
+        self.assertEqual(403, response.code)

@@ -6,6 +6,8 @@ from tornado.web import Application
 from .base import BaseTest
 
 from api.handlers.login import LoginHandler
+from api.security_utils import hash_password
+
 
 class LoginHandlerTest(BaseTest):
 
@@ -15,9 +17,12 @@ class LoginHandlerTest(BaseTest):
         super().setUpClass()
 
     async def register(self):
+        password_data = hash_password(self.password)
         await self.get_app().db.users.insert_one({
             'email': self.email,
-            'password': self.password,
+            'passwordHash': password_data['passwordHash'],
+            'passwordSalt': password_data['passwordSalt'],
+            'passwordIterations': password_data['passwordIterations'],
             'displayName': 'testDisplayName'
         })
 
@@ -31,8 +36,8 @@ class LoginHandlerTest(BaseTest):
 
     def test_login(self):
         body = {
-          'email': self.email,
-          'password': self.password
+            'email': self.email,
+            'password': self.password
         }
 
         response = self.fetch('/login', method='POST', body=dumps(body))
@@ -44,8 +49,8 @@ class LoginHandlerTest(BaseTest):
 
     def test_login_case_insensitive(self):
         body = {
-          'email': self.email.swapcase(),
-          'password': self.password
+            'email': self.email.swapcase(),
+            'password': self.password
         }
 
         response = self.fetch('/login', method='POST', body=dumps(body))
@@ -57,8 +62,8 @@ class LoginHandlerTest(BaseTest):
 
     def test_login_wrong_email(self):
         body = {
-          'email': 'wrongUsername',
-          'password': self.password
+            'email': 'wrongUsername',
+            'password': self.password
         }
 
         response = self.fetch('/login', method='POST', body=dumps(body))
@@ -66,8 +71,8 @@ class LoginHandlerTest(BaseTest):
 
     def test_login_wrong_password(self):
         body = {
-          'email': self.email,
-          'password': 'wrongPassword'
+            'email': self.email,
+            'password': 'wrongPassword'
         }
 
         response = self.fetch('/login', method='POST', body=dumps(body))
