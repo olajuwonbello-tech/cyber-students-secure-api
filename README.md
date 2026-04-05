@@ -1,198 +1,204 @@
 # cyber-students-secure-api
 
-This repository provides a secure REST API implementation for the Shared Project for Modern Cryptography and Security Management & Compliance.
+This project is part of the **Modern Cryptography and Security Management & Compliance** assignment. It is based on the provided starter code and has been extended to implement secure handling of user data.
 
-This project builds upon the original sample code by improving security through password hashing, token-based authentication, and better data handling practices.
+## Security Enhancements Implemented
 
----
+I improved the original system by adding the following security features:
 
-##  Remarks
+* Password hashing using salt and multiple iterations
+* Token-based authentication with expiration
+* Token hashing before storage
+* Encryption of sensitive personal data:
 
-This project is based on the original coursework provided by my lecturer for the Modern Cryptography and Security Management & Compliance module.
+  * Full name
+  * Phone number
+  * Address
+  * Date of birth
+  * Disability information
+* Secure logout functionality (token invalidation)
 
-The base structure and initial implementation were provided as part of the academic project.
-Enhancements, security improvements, and additional functionality were implemented by me.
-
----
-
-##  Features
-
-* User Registration
-* User Login (Token-based authentication)
-* Logout functionality
-* User Profile retrieval
-* Password hashing (secure storage)
-* MongoDB database integration
+These changes ensure that even if the database is accessed, sensitive data is not readable.
 
 ---
 
-##  Requirements
+## Setup the Project
 
-* Python 3
-* MongoDB
-* Git
-* curl
+### 1. Create a virtual environment
 
----
-
-##  Get the Code
-
-```sh
-git clone https://github.com/YOUR_GITHUB_USERNAME/cyber-students-secure-api.git
-cd cyber-students-secure-api
-```
-
----
-
-##  Setup the Project
-
-Create a virtual environment:
-
-```sh
+```bash
 python -m venv project-venv
 ```
 
-Activate it:
+### 2. Activate the environment
 
-```sh
-# macOS/Linux
+```bash
 source project-venv/bin/activate
-
-# Windows
-.\project-venv\Scripts\activate
 ```
 
-Install dependencies:
+### 3. Install dependencies
 
-```sh
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-##  Database Setup
+## Database Setup
 
-Start MongoDB and open shell:
+Start MongoDB and run:
 
-```sh
+```bash
 mongosh
 ```
 
-Create database and collection:
+Then create the database:
 
-```js
+```bash
 use cyberStudents;
 db.createCollection('users');
 ```
 
 ---
 
-##  Run the Server
+## Run the Server
 
-```sh
+```bash
 python run_server.py
 ```
 
-Server runs at:
+The server runs at:
 
-```
 http://localhost:4000/students/api
-```
 
 ---
 
-##  API Usage
+## API Endpoints
 
-### Register
+### Register User
 
-```sh
-curl -X POST http://localhost:4000/students/api/registration \
--d "{\"email\": \"test@example.com\", \"password\": \"pass123\", \"displayName\": \"Test User\"}"
+```bash
+curl -X POST http://localhost:4000/students/api/registration -d '{
+  "email": "user@example.com",
+  "password": "secure123",
+  "displayName": "User",
+  "fullName": "John Doe",
+  "phone": "123456789",
+  "address": "Street 1",
+  "dob": "2000-01-01",
+  "disability": "None"
+}'
 ```
 
 ---
 
 ### Login
 
-```sh
-curl -X POST http://localhost:4000/students/api/login \
--d "{\"email\": \"test@example.com\", \"password\": \"pass123\"}"
+```bash
+curl -X POST http://localhost:4000/students/api/login -d '{
+  "email": "user@example.com",
+  "password": "secure123"
+}'
 ```
 
 Response:
 
 ```json
 {
-  "token": "your_token_here",
+  "token": "generated_token",
   "expiresIn": 1234567890
 }
 ```
 
 ---
 
-### Get Profile
+### Get User Profile
 
-```sh
-curl -H "X-Token: your_token_here" \
-http://localhost:4000/students/api/user
+```bash
+curl -H "X-Token: YOUR_TOKEN" http://localhost:4000/students/api/user
 ```
 
 ---
 
 ### Logout
 
-```sh
-curl -X POST -H "X-Token: your_token_here" \
-http://localhost:4000/students/api/logout
+```bash
+curl -X POST -H "X-Token: YOUR_TOKEN" http://localhost:4000/students/api/logout
 ```
 
 ---
 
-##  Run Tests
+## Run Tests
 
-```sh
+```bash
 python run_test.py
 ```
 
----
-
-##  Security Improvements
-
-The original implementation stored passwords in plaintext.
-This version improves security by:
-
-* Hashing passwords before storing them
-* Preventing duplicate user registration
-* Using token-based authentication with expiration
-* Reducing risk of credential exposure
+All tests should pass successfully.
 
 ---
 
-##  Hacker Script
+## Hacker Script (Security Demonstration)
 
-```sh
+Run:
+
+```bash
 python run_hacker.py list
 ```
 
-This script demonstrates what an attacker could see if the database is compromised.
+Before the security implementation:
 
- In this improved version, passwords are no longer stored in plaintext, making attacks significantly less effective.
+* Passwords were stored in plain text
+* Personal data was readable
+
+After the implementation:
+
+* Passwords are hashed
+* Tokens are hashed
+* Personal data is encrypted (stored as ciphertext with nonce)
+
+This demonstrates improved protection against data breaches.
+
+---
+
+## Project Structure
+
+```
+api/
+  handlers/
+    registration.py
+    login.py
+    logout.py
+    user.py
+  security_utils.py
+
+test/
+run_server.py
+run_test.py
+run_hacker.py
+```
 
 ---
 
-##  Notes
+## Acknowledgement
 
-* Tokens expire after a set time or logout
-* MongoDB must be running locally
-* Tests use an in-memory database (no MongoDB required)
+This project is based on the starter code and guidance provided as part of the **Modern Cryptography and Security Management & Compliance** course. I extended the original implementation by adding security features such as password hashing, token security, and data encryption.
 
 ---
 
-##  Future Improvements
+## Author
 
-* Environment variables for secrets
-* Docker support
-* HTTPS deployment
-* Rate limiting and API protection
+Developed by:
+
+Bello
 
 ---
+
+## Summary
+
+This project demonstrates:
+
+* Secure password handling
+* Token-based authentication
+* Data encryption techniques
+* Protection against common security vulnerabilities
